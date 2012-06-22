@@ -13,7 +13,8 @@ The easiest way to test GCP service is to [enable the Google Cloud Print connect
 
 The [sample application](https://github.com/wqweto/VbGcp/raw/master/Sample/GCPSample.exe) exercises the classes by rendering a prototype of GCP settings dialog (OAuth2 login and consent), print dialog (select printer, copies, collation, etc.) and printer properties dialog (more printer settings). 
 
-![Login and Print dialog](https://github.com/wqweto/VbGcp/raw/master/Doc/ss_gcp_1.png)___![Printer Setup dialog](https://github.com/wqweto/VbGcp/raw/master/Doc/ss_gcp_2.png)
+![Login and Print dialog](https://github.com/wqweto/VbGcp/raw/master/Doc/ss_gcp_1.png)
+![Printer Setup dialog](https://github.com/wqweto/VbGcp/raw/master/Doc/ss_gcp_2.png)
 
 The sample can submit a file to GCP service and tracks its print job progress as GCP service processes the file. This is done by continually listing current printer jobs by status. All of the operations are implemented in async mode.
 
