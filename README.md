@@ -7,11 +7,11 @@ GCP is available as a REST service on `www.google.com/cloudprint` address. There
 
 GCP documentation used to develop VbGcp is available on [Submitting Print Jobs](https://developers.google.com/cloud-print/docs/sendJobs) on Google Developers.
 
-The easied way to test GCP service is to [enable the Google Cloud Print connector in Google Chrome](http://support.google.com/cloudprint/bin/answer.py?&answer=1686197) which will register all your local printers as cloud printers. This works both with Windows printers and with CUPS printers on Linux.
+The easiest way to test GCP service is to [enable the Google Cloud Print connector in Google Chrome](http://support.google.com/cloudprint/bin/answer.py?&answer=1686197) which will register all your local printers as cloud printers. This works both with Windows printers and with CUPS printers on Linux.
 
 ### Sample included
 
-The [sample application](https://github.com/wqweto/VbGcp/raw/master/Sample/GCPSample.exe) excercises the classes by rendering a prototype of GCP settings dialog (OAuth2 login and consent), print dialog (select printer, copies, collation, etc.) and printer properties dialog (more printer settings). 
+The [sample application](https://github.com/wqweto/VbGcp/raw/master/Sample/GCPSample.exe) exercises the classes by rendering a prototype of GCP settings dialog (OAuth2 login and consent), print dialog (select printer, copies, collation, etc.) and printer properties dialog (more printer settings). 
 
 The sample can submit a file to GCP service and tracks its print job progress as GCP service processes the file. This is done by continually listing current printer jobs by status. All of the operations are implemented in async mode.
 
@@ -27,12 +27,12 @@ The sample can submit a file to GCP service and tracks its print job progress as
 
 For asynchronous service requests leave `ASYNC_SUPPORT` set to `True` and include in your project `cGcpCallback` class too.
 
-`cGcpPrinterCaps` is a helper class for easier setting of job capabilties -- number of copies, paper size, page orientation, etc. Print job settings are submitted to GCP service in JSON format and can be constructed manually. This wrapper class just parses printer capabilties as returned by the GCP service (both XPS and PPD formats) and exposes these in a consistent way as settable properties. (This is a work in progress from Google, results are not very consistent at present.)
+`cGcpPrinterCaps` is a helper class for easier setting of job capabilities -- number of copies, paper size, page orientation, etc. Print job settings are submitted to GCP service in JSON format and can be constructed manually. This wrapper class just parses printer capabilities as returned by the GCP service (both XPS and PPD formats) and exposes these in a consistent way as settable properties. (This is a work in progress from Google, results are not very consistent at present.)
 
-Finally `cGcpOAuth` is a helper class for OAuth2 user authentication in [Installed Application](https://developers.google.com/accounts/docs/OAuth2#installed) mode. It uses google accounts to validate user login and to acquire user consent on accessing GCP service. Then it retrieves OAuth2 `refresh_token` from `accounts.google.com/o/oauth2/token` service which can be stored and later used to retrieve OAuth `access_token` for GCP service without showing another login screen.
+Finally `cGcpOAuth` is a helper class for OAuth2 user authentication in [Installed Application](https://developers.google.com/accounts/docs/OAuth2#installed) mode. It uses Google Accounts to validate user login and to acquire user consent on accessing GCP service. Then it retrieves OAuth2 `refresh_token` from `accounts.google.com/o/oauth2/token` service which can be stored and later used to retrieve OAuth `access_token` for GCP service without showing another login screen.
 
 ## API
-(Work in progess)
+(Work in progress)
 
 ### `cGcpService` class
 
@@ -40,16 +40,16 @@ GCP service wrapper class. Calls REST service methods and parses returned JSON r
 
 #### `Init(sHost As String, sCredentials As String, ByVal eType As GcpCredentialsTypeEnum) As Boolean`
 
-Used to initialize service location and credentials used to access GCP service. The `sHost` parameter is either `https://www.google.com` for SSL or `http://www.google.com` for unecrypted access to the service. Parameter `sCredentials` contains the credentials used to access GCP service. Its format depends on `eType` parameter. 
+Used to initialize service location and credentials used to access GCP service. The `sHost` parameter is either `https://www.google.com` for SSL or `http://www.google.com` for unencrypted access to the service. Parameter `sCredentials` contains the credentials used to access GCP service. Its format depends on `eType` parameter. 
 
  - `gcpCrtGoogleLogin`: `sCredentials` format is `google_account:password`
  - `gcpCrtOAuthRefreshToken`: `sCredentials` format is `refresh_token:client_id:client_secret`
  
-The `refresh_token` is retrieved from OAuth2 service on user login/consent. The `client_id` and `client_secret` should be hard-coded in the application. These are acquired by registering your application with google's OAuth2 service through their [APIs Console](https://code.google.com/apis/console#access).
+The `refresh_token` is retrieved from OAuth2 service on user login/consent. The `client_id` and `client_secret` should be hard-coded in the application. These are acquired by registering your application with Google's OAuth2 service through their [APIs Console](https://code.google.com/apis/console#access).
 
 #### `Property AsyncOperations As Boolean`
 
-Determines if service calls (see methods table above) block or return immediatly. In synchronous mode service methods return parsed JSON object. In async mode service methods return `cGcpCallback` object that raises its `Complete` event on request completion.
+Determines if service calls (see methods table above) block or return immediately. In synchronous mode service methods return parsed JSON object. In async mode service methods return `cGcpCallback` object that raises its `Complete` event on request completion.
 
 #### `PrintDocument(sPrinterId As String, sFile As String, [Title As String], [ContentType As String], [Capabilities As String]) As Object`
 
@@ -73,7 +73,7 @@ Deletes a job by id.
 
 #### `Property Timeout As Long`
 
-Determines timeout (in seconds) on service calls. `PrintDocument` method tripples the value. Default is 10 seconds.
+Determines timeout (in seconds) on service calls. `PrintDocument` method triples the value. Default is 10 seconds.
 
 #### `Property LastError As String`
 
@@ -85,7 +85,7 @@ Used for async service calls by `cGcpService` methods.
 
 #### `Event Complete(oResult As Object)`
 
-Occurs when service call is finished. `oResult` containes parsed JSON result.
+Occurs when service call is finished. `oResult` contains parsed JSON result.
 
 ### `cGcpOAuth` class
 
@@ -93,7 +93,7 @@ OAuth2 helper class. Wraps `WebBrowser` control navigation and retrieves result 
 
 #### `Init(oCtl As WebBrowser, sClientId As String, sClientSecret As String, [sScope As String]) As Boolean`
 
-Initializes extension class. `sClientId` and `sClientSecret` usually are hard-coded in the application. These has to be acquired through google's [APIs Console](https://code.google.com/apis/console#access).
+Initializes extension class. `sClientId` and `sClientSecret` usually are hard-coded in the application. These have to be acquired through Google's [APIs Console](https://code.google.com/apis/console#access).
 
 #### `Event Complete(ByVal Allowed As Boolean, DenyReason As String)`
 
