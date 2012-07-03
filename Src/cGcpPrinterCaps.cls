@@ -11,6 +11,17 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
+'=========================================================================
+' $Header: $
+'
+'   VB6 Google Cloud Print proxy
+'   Copyright (c) 2012 Unicontsoft
+'
+'   Google Cloud Print printer capabilities helper
+'
+' $Log: $
+'
+'=========================================================================
 Option Explicit
 DefObj A-Z
 'Private Const MODULE_NAME As String = "cGcpPrinterCaps"
@@ -45,6 +56,7 @@ Private Const REX_DUPLEX_LONG_EDGE      As String = "/(psk:TwoSidedLongEdge|Dupl
 Private Const REX_DUPLEX_OFF            As String = "/(psk:OneSided|None)/i"
 Private Const REX_DUPLEX_SHORT_EDGE     As String = "/(psk:TwoSidedShortEdge|DuplexTumble)/i"
 
+Private m_oPrinterInfo          As Object
 Private m_sFormatType           As String
 Private m_sFormatDisplayName    As String
 Private m_oCaps                 As Object
@@ -55,6 +67,10 @@ Private m_aProps()              As Long
 '=========================================================================
 ' Properties
 '=========================================================================
+
+Property Get PrinterInfo() As Object
+    Set PrinterInfo = m_oPrinterInfo
+End Property
 
 Property Get Count() As Long
     Count = m_oCaps.Count
@@ -250,6 +266,16 @@ Property Get PropOptionNames(ByVal Index As GcpCapsPropertyEnum) As Variant
     End If
 End Property
 
+Property Get PropOptions(ByVal Index As GcpCapsPropertyEnum) As Object
+    If m_aProps(Index) >= 0 Then
+        With m_oCaps(m_aProps(Index))
+            If .Exists("options") Then
+                Set PropOptions = !Options
+            End If
+        End With
+    End If
+End Property
+
 '=========================================================================
 ' Methods
 '=========================================================================
@@ -272,6 +298,7 @@ Public Function Init(oPrinterInfo As Object) As Boolean
     Case Else
         Err.Raise vbObjectError, , Replace(ERR_UNKNOWN_FORMAT, "{0}", oPrinterInfo!capsFormat)
     End Select
+    Set m_oPrinterInfo = oPrinterInfo
     Set m_oCaps = oPrinterInfo!Capabilities
     If Count > 0 Then
         ReDim m_vValues(0 To Count - 1) As Variant
@@ -341,30 +368,30 @@ End Function
 Public Function FormatCapabilties() As String
     Dim lIdx            As Long
     Dim oResult         As Object
-    Dim oNewValue       As Object
+    Dim oNewItem        As Object
     
     Set oResult = pvInitJson()
     Set oResult("capabilities") = pvInitJson(Arr:=True)
     For lIdx = 0 To Count - 1
         If Not IsEmpty(m_vValues(lIdx)) Then
-            Set oNewValue = pvInitJson()
+            Set oNewItem = pvInitJson()
             With m_oCaps(lIdx)
-                oNewValue("name") = !Name
-                oNewValue("type") = !Type
+                oNewItem("name") = !Name
+                oNewItem("type") = !Type
                 If .Exists("options") Then
                     If IsNumeric(m_vValues(lIdx)) Then
-                        Set oNewValue("options") = pvInitJson(Arr:=True)
-                        Set oNewValue!Options(0) = !Options(CLng(m_vValues(lIdx)))
+                        Set oNewItem("options") = pvInitJson(Arr:=True)
+                        Set oNewItem!Options(0) = !Options(CLng(m_vValues(lIdx)))
                     Else
                         '--- wrong index -> skip value
-                        Set oNewValue = Nothing
+                        Set oNewItem = Nothing
                     End If
                 Else
-                    oNewValue("value") = CStr(m_vValues(lIdx))
+                    oNewItem("value") = CStr(m_vValues(lIdx))
                 End If
             End With
-            If Not oNewValue Is Nothing Then
-                Set oResult!Capabilities(oResult!Capabilities.Count) = oNewValue
+            If Not oNewItem Is Nothing Then
+                Set oResult!Capabilities(oResult!Capabilities.Count) = oNewItem
             End If
         End If
     Next
