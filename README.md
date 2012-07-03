@@ -5,7 +5,7 @@ VbGcp is a set of classes that support printing documents (PDF, TXT, JPG, GIF, P
 
 GCP is available as a REST service on `www.google.com/cloudprint` address. There are two parts of the printing process: submitting jobs by client applications (this proxy) and receiving jobs by registered printers (firmware or software proxies).
 
-GCP documentation used to develop VbGcp is available on [Submitting Print Jobs](https://developers.google.com/cloud-print/docs/sendJobs) on Google Developers.
+GCP documentation used to develop VbGcp is available on [Submitting Print Jobs](https://developers.google.com/cloud-print/docs/sendJobs) on Google Developers. You can check out the [Google Cloud Print API Simulation](http://www.google.com/cloudprint/simulate.html) page too.
 
 The easiest way to test GCP service is to [enable the Google Cloud Print connector in Google Chrome](http://support.google.com/cloudprint/bin/answer.py?&answer=1686197) which will register all your local printers as cloud printers. This works both with Windows printers and with CUPS printers on Linux.
 
