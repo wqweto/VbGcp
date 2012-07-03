@@ -11,6 +11,17 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
+'=========================================================================
+' $Header: $
+'
+'   VB6 Google Cloud Print proxy
+'   Copyright (c) 2012 Unicontsoft
+'
+'   OAuth support
+'
+' $Log: $
+'
+'=========================================================================
 Option Explicit
 DefObj A-Z
 'Private Const MODULE_NAME As String = "cGcpOAuth"
@@ -97,7 +108,7 @@ Private Sub m_oCtl_DocumentComplete(ByVal pDisp As Object, URL As Variant)
     Dim sError          As String
     
     On Error GoTo EH
-    If URL Like "about:*" And LenB(m_sCode) <> 0 Then
+    If URL Like "about:*" And LenB(m_sCode) <> 0 And LenB(m_sRefreshToken) = 0 Then
         With New cGcpService
              If .frGetRefreshToken(m_sCode, m_sClientId, m_sClientSecret, m_sRefreshToken, m_sUserEmail, sError) Then
                 RaiseEvent Complete(True, vbNullString)
@@ -113,7 +124,7 @@ NavigateToRetry:
     End If
     Exit Sub
 EH:
-    sError = Error
+    sError = Error$
     Resume NavigateToRetry
 End Sub
 
