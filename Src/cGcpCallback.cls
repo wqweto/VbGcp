@@ -11,6 +11,17 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
+'=========================================================================
+' $Header: $
+'
+'   VB6 Google Cloud Print proxy
+'   Copyright (c) 2012 Unicontsoft
+'
+'   Async REST service callback
+'
+' $Log: $
+'
+'=========================================================================
 Option Explicit
 DefObj A-Z
 'Private Const MODULE_NAME As String = "cGcpCallback"
@@ -59,12 +70,19 @@ End Property
 '=========================================================================
 
 '--- for Callback routine set Procedure ID=(Default) and Hidden=[x] in menu Tools->Procedure Attributes
-
 Public Sub Callback()
 Attribute Callback.VB_UserMemId = 0
 Attribute Callback.VB_MemberFlags = "40"
     If Not m_oService Is Nothing Then
         m_oService.frOnReadyStateChange Me
+    End If
+End Sub
+
+Public Sub Abort()
+    If Not m_oRequest Is Nothing Then
+        m_oRequest.OnReadyStateChange = Nothing
+        m_oRequest.Abort
+        Set m_oRequest = Nothing
     End If
 End Sub
 
@@ -83,9 +101,10 @@ End Function
 
 Friend Sub frSetResult(oResult As Object)
     Set m_oResult = oResult
-    If Not oResult Is Nothing Then
-        RaiseEvent Complete(oResult)
-    End If
+End Sub
+
+Friend Sub frFireComplete()
+    RaiseEvent Complete(m_oResult)
 End Sub
 
 Friend Sub frTerminate()
