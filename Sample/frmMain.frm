@@ -9,18 +9,26 @@ Begin VB.Form frmMain
    ScaleHeight     =   7128
    ScaleWidth      =   8076
    StartUpPosition =   3  'Windows Default
+   Begin VB.CommandButton cmdDelete 
+      Caption         =   "Delete Job"
+      Height          =   348
+      Left            =   6468
+      TabIndex        =   24
+      Top             =   3276
+      Width           =   1356
+   End
    Begin VB.Frame fraJob 
       Caption         =   "Job settings"
       Height          =   1188
       Left            =   252
-      TabIndex        =   13
+      TabIndex        =   19
       Top             =   1512
       Visible         =   0   'False
       Width           =   6060
       Begin VB.TextBox txtCopies 
          Height          =   288
          Left            =   1008
-         TabIndex        =   20
+         TabIndex        =   4
          Text            =   "1"
          Top             =   336
          Width           =   516
@@ -31,7 +39,7 @@ Begin VB.Form frmMain
          Left            =   2016
          ScaleHeight     =   684
          ScaleWidth      =   1272
-         TabIndex        =   16
+         TabIndex        =   20
          TabStop         =   0   'False
          Top             =   336
          Width           =   1272
@@ -39,7 +47,7 @@ Begin VB.Form frmMain
             Caption         =   "Portrait"
             Height          =   264
             Left            =   0
-            TabIndex        =   18
+            TabIndex        =   6
             Top             =   0
             Value           =   -1  'True
             Width           =   1188
@@ -48,7 +56,7 @@ Begin VB.Form frmMain
             Caption         =   "Landscape"
             Height          =   264
             Left            =   0
-            TabIndex        =   17
+            TabIndex        =   7
             Top             =   336
             Width           =   1188
          End
@@ -56,14 +64,14 @@ Begin VB.Form frmMain
       Begin VB.ComboBox cobPaper 
          Height          =   288
          Left            =   4284
-         TabIndex        =   15
+         TabIndex        =   8
          Top             =   336
          Width           =   1608
       End
       Begin VB.ComboBox cobResolution 
          Height          =   288
          Left            =   4284
-         TabIndex        =   14
+         TabIndex        =   9
          Top             =   756
          Width           =   1608
       End
@@ -71,7 +79,7 @@ Begin VB.Form frmMain
          Caption         =   "Collate"
          Height          =   264
          Left            =   1008
-         TabIndex        =   19
+         TabIndex        =   5
          Top             =   672
          Width           =   1356
       End
@@ -104,20 +112,14 @@ Begin VB.Form frmMain
       Caption         =   "Properties..."
       Height          =   348
       Left            =   6468
-      TabIndex        =   12
+      TabIndex        =   10
       Top             =   1596
       Width           =   1356
-   End
-   Begin VB.Timer tmrRefreshJobs 
-      Enabled         =   0   'False
-      Interval        =   1
-      Left            =   7476
-      Top             =   0
    End
    Begin VB.ListBox lstJobs 
       Height          =   1968
       Left            =   252
-      TabIndex        =   7
+      TabIndex        =   14
       Top             =   3780
       Width           =   7572
    End
@@ -125,7 +127,7 @@ Begin VB.Form frmMain
       Caption         =   "Google Cloud Print setttings"
       Height          =   852
       Left            =   252
-      TabIndex        =   10
+      TabIndex        =   17
       Top             =   168
       Width           =   6060
       Begin VB.CommandButton cmdSetup 
@@ -139,7 +141,7 @@ Begin VB.Form frmMain
       Begin VB.Label labOAuth 
          Height          =   348
          Left            =   252
-         TabIndex        =   11
+         TabIndex        =   18
          Top             =   336
          Width           =   4044
       End
@@ -147,7 +149,7 @@ Begin VB.Form frmMain
    Begin VB.ComboBox cobFile 
       Height          =   288
       Left            =   252
-      TabIndex        =   4
+      TabIndex        =   12
       Top             =   2856
       Width           =   6060
    End
@@ -173,7 +175,7 @@ Begin VB.Form frmMain
       Left            =   84
       MultiLine       =   -1  'True
       ScrollBars      =   2  'Vertical
-      TabIndex        =   8
+      TabIndex        =   15
       TabStop         =   0   'False
       Text            =   "frmMain.frx":0000
       Top             =   5880
@@ -183,8 +185,8 @@ Begin VB.Form frmMain
       Caption         =   "Jobs"
       Height          =   348
       Left            =   6468
-      TabIndex        =   6
-      Top             =   3276
+      TabIndex        =   11
+      Top             =   2016
       Width           =   1356
    End
    Begin VB.ComboBox cobPrinter 
@@ -199,7 +201,7 @@ Begin VB.Form frmMain
       Default         =   -1  'True
       Height          =   348
       Left            =   6468
-      TabIndex        =   5
+      TabIndex        =   13
       Top             =   2856
       Width           =   1356
    End
@@ -214,7 +216,7 @@ Begin VB.Form frmMain
    Begin VB.Label labJob 
       Height          =   264
       Left            =   252
-      TabIndex        =   9
+      TabIndex        =   16
       Top             =   3360
       Width           =   6060
    End
@@ -224,6 +226,17 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+'=========================================================================
+' $Header: $
+'
+'   VB6 Google Cloud Print proxy
+'   Copyright (c) 2012 Unicontsoft
+'
+'   Sample print document form
+'
+' $Log: $
+'
+'=========================================================================
 Option Explicit
 DefObj A-Z
 
@@ -256,6 +269,8 @@ Private WithEvents m_oAsyncJobs As cGcpCallback
 Attribute m_oAsyncJobs.VB_VarHelpID = -1
 Private WithEvents m_oAsyncPrint As cGcpCallback
 Attribute m_oAsyncPrint.VB_VarHelpID = -1
+Private WithEvents m_oAsyncDelete As cGcpCallback
+Attribute m_oAsyncDelete.VB_VarHelpID = -1
 
 '=========================================================================
 ' Methods
@@ -276,7 +291,7 @@ End Function
 Private Function pvLogResult(oResult As Object, sMethod As String) As Object
     txtLog.Text = Right$(txtLog.Text & Format$(Timer, "0.00") & " " & sMethod & vbCrLf & pvJsonDump(oResult) & vbCrLf & vbCrLf, &HFFFF&)
     Set pvLogResult = oResult
-    If oResult!Success Then
+    If oResult!success Then
     Else
         MsgBox oResult!message, vbExclamation, "Error"
     End If
@@ -445,9 +460,9 @@ Private Sub m_oAsyncConnect_Complete(oResult As Object)
     Dim vElem           As Variant
     
     With pvLogResult(oResult, "m_oAsyncConnect_Complete")
-        If !Success Then
+        If !success Then
             cobPrinter.Clear
-            Set m_oPrinters = !Printers
+            Set m_oPrinters = !printers
             For Each vElem In m_oPrinters.Items
                 cobPrinter.AddItem vElem!DisplayName & IIf(LenB(vElem!connectionStatus) <> 0 And vElem!connectionStatus <> "ONLINE", " (" & vElem!connectionStatus & ")", vbNullString)
             Next
@@ -473,8 +488,8 @@ Private Sub m_oAsyncPrinterInfo_Complete(oResult As Object)
     Dim oPrinterInfo    As Object
         
     With pvLogResult(oResult, "m_oAsyncPrinterInfo_Complete")
-        If !Success Then
-            Set oPrinterInfo = !Printers(0)
+        If !success Then
+            Set oPrinterInfo = !printers(0)
         End If
     End With
     If Not oPrinterInfo Is Nothing Then
@@ -538,7 +553,7 @@ Private Sub m_oAsyncPrint_Complete(oResult As Object)
     Dim oJob            As Object
     
     With pvLogResult(oResult, "m_oAsyncPrint_Complete")
-        If !Success Then
+        If !success Then
             Set oJob = !job
         End If
     End With
@@ -555,24 +570,33 @@ Private Sub cmdJobs_Click()
     If cobPrinter.ListIndex >= 0 Then
         sPrinterId = m_oPrinters(cobPrinter.ListIndex)!ID
     End If
-    Set m_oAsyncJobs = pvInitService(Async:=True, Clear:=False).GetJobs(sPrinterId)
+    Set m_oAsyncJobs = pvInitService(Async:=True, Clear:=False).GetJobs(sPrinterId, 20)
 End Sub
 
 Private Sub m_oAsyncJobs_Complete(oResult As Object)
     Dim oJobs           As Object
     Dim vElem           As Variant
+    Dim lIdx            As Long
+    Dim sText           As String
     
     With pvLogResult(oResult, "m_oAsyncJobs_Complete")
-        If !Success Then
+        If !success Then
             Set oJobs = !jobs
         End If
     End With
     If Not oJobs Is Nothing Then
-        lstJobs.Clear
         For Each vElem In oJobs.Items
-            lstJobs.AddItem vElem!Status & vbTab & vElem!numberOfPages & vbTab & vElem!Title & vbTab & vElem!printerName
+            sText = vElem!Status & vbTab & vElem!numberOfPages & vbTab & vElem!Title & vbTab & vElem!printerName
+            If lIdx < lstJobs.ListCount Then
+                lstJobs.List(lIdx) = sText
+            Else
+                lstJobs.AddItem sText
+            End If
+            lIdx = lIdx + 1
         Next
-        lstJobs.Refresh
+        Do While lIdx < lstJobs.ListCount
+            lstJobs.RemoveItem lIdx
+        Loop
         Set m_oJobs = oJobs
     End If
     If m_oJobs.Count > 0 Then
@@ -603,14 +627,22 @@ Private Sub cobFile_Click()
     End If
 End Sub
 
-Private Sub tmrRefreshJobs_Timer()
-    tmrRefreshJobs.Enabled = False
-    cmdJobs.Value = True
-    If m_oJobs.Count > 0 Then
-        If m_oJobs(0)!Status = "QUEUED" Or m_oJobs(0)!Status = "IN_PROGRESS" Then
-            tmrRefreshJobs.Enabled = True
-        End If
+Private Sub cmdDelete_Click()
+    Dim sJobId          As String
+    
+    If lstJobs.ListIndex >= 0 Then
+        sJobId = m_oJobs(lstJobs.ListIndex)!ID
     End If
+    Set m_oAsyncDelete = pvInitService(Async:=True).DeleteJob(sJobId)
+End Sub
+
+Private Sub m_oAsyncDelete_Complete(oResult As Object)
+    With pvLogResult(oResult, "m_oAsyncDelete_Complete")
+        If !success Then
+            
+        End If
+    End With
+    cmdJobs.Value = True
 End Sub
 
 Private Sub Form_Activate()
