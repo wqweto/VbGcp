@@ -44,6 +44,17 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+'=========================================================================
+' $Header: $
+'
+'   VB6 Google Cloud Print proxy
+'   Copyright (c) 2012 Unicontsoft
+'
+'   Sample google account setup form
+'
+' $Log: $
+'
+'=========================================================================
 Option Explicit
 DefObj A-Z
 
