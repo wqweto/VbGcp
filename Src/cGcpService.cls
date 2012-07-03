@@ -11,6 +11,17 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
+'=========================================================================
+' $Header: $
+'
+'   VB6 Google Cloud Print proxy
+'   Copyright (c) 2012 Unicontsoft
+'
+'   Google Cloud Print service helper
+'
+' $Log: $
+'
+'=========================================================================
 Option Explicit
 DefObj A-Z
 'Private Const MODULE_NAME As String = "cGcpService"
@@ -123,6 +134,7 @@ Public Function PrintDocument( _
             Optional ContentType As String, _
             Optional Capabilities As String) As Object
     #Const USE_DATA_URL = False
+    #Const USE_BASE64 = False
     Dim sPostData       As String
     
     If Not pvAuthorize(PrintDocument) Then
@@ -132,25 +144,29 @@ Public Function PrintDocument( _
         ContentType = pvMatchContentType(sFile)
     End If
     pvRestAddParam sPostData, "printerid", sPrinterId
-    If ContentType Like "text/*" Then
+    If ContentType Like "text/*" And False Then
         pvRestAddParam sPostData, "contentType", ContentType
     Else
         #If USE_DATA_URL Then
             pvRestAddParam sPostData, "contentType", "dataUrl"
         #Else
             pvRestAddParam sPostData, "contentType", ContentType
-            pvRestAddParam sPostData, "contentTransferEncoding", "base64"
+            #If USE_BASE64 Then
+                pvRestAddParam sPostData, "contentTransferEncoding", "base64"
+            #End If
         #End If
     End If
     pvRestAddParam sPostData, "title", Title
     pvRestAddParam sPostData, "capabilities", Capabilities
-    If ContentType Like "text/*" Then
+    If ContentType Like "text/*" And False Then
         pvRestAddParam sPostData, "content", BOM_UTF & pvToUtf8(pvReadTextFile(sFile)), ContentType
     Else
         #If USE_DATA_URL Then
             pvRestAddParam sPostData, "content", "data:" & ContentType & ";base64," & pvToBase64(pvReadBinaryFile(sFile))
-        #Else
+        #ElseIf USE_BASE64 Then
             pvRestAddParam sPostData, "content", pvToBase64(pvReadBinaryFile(sFile)), ContentType
+        #Else
+            pvRestAddParam sPostData, "content""; filename=""" & Mid$(sFile, InStrRev(sFile, "\") + 1), StrConv(pvReadBinaryFile(sFile), vbUnicode), ContentType
         #End If
     End If
     pvRestInvoke URL_SUBMIT, sPostData, PrintDocument, Timeout:=Timeout * 3
@@ -198,8 +214,7 @@ Public Function DeleteJob(sJobId As String) As Object
     pvRestInvoke URL_DELETEJOB, sPostData, DeleteJob
 End Function
 
-'--- Used by cGcpOAuth to retrieve rehresh_token from OAuth code. On success retrieves user email too.
-
+'--- Used by cGcpOAuth to retrieve rehresh_token from OAuth code. On success retrieves user's email too.
 Friend Function frGetRefreshToken( _
             sCode As String, _
             sClientId As String, _
@@ -220,7 +235,7 @@ Friend Function frGetRefreshToken( _
     pvRestAddParam sPostData
     With pvInitRequest("POST", URL_OAUTH_TOKEN)
         .SetRequestHeader "Content-Type", "multipart/form-data; boundary=" & STR_BOUNDARY
-        .Send CVar(sPostData)
+        .Send pvToByteArray(sPostData)
         If pvJsonParse(.ResponseText, 1, oToken, sError) Then
             If LenB(oToken!refresh_token) <> 0 Then
                 sRefreshToken = oToken!refresh_token
@@ -249,20 +264,20 @@ End Function
 
 #If ASYNC_SUPPORT Then
     '--- Used by cGcpCallback to call back in when underlying XHR ready-state changes
-    
     Friend Sub frOnReadyStateChange(oCallback As cGcpCallback)
         Dim oResult             As Object
         
         If oCallback.Request.ReadyState = 4 Then
             If Not pvJsonParse(oCallback.Request.ResponseText, 1, oResult, m_sLastError) Then
                 Set oResult = pvInitDictionary()
-                oResult!Success = False
+                oResult!success = False
                 oResult!message = "Invalid response"
                 oResult!response = oCallback.Request.ResponseText
                 oResult!parseError = m_sLastError
             End If
             oCallback.frSetResult oResult
             RaiseEvent Complete(oCallback)
+            oCallback.frFireComplete
             m_cAsyncCallbacks.Remove oCallback.Cookie
             oCallback.frTerminate
         End If
@@ -309,7 +324,7 @@ Private Function pvAuthorize(oResult As Object) As Boolean
         pvRestAddParam sPostData
         With pvInitRequest("POST", URL_OAUTH_TOKEN)
             .SetRequestHeader "Content-Type", "multipart/form-data; boundary=" & STR_BOUNDARY
-            .Send CVar(sPostData)
+            .Send pvToByteArray(sPostData)
             If pvJsonParse(.ResponseText, 1, oToken, sError) Then
                 If LenB(oToken!access_token) <> 0 Then
                     m_sAuthorization = "OAuth " & oToken!access_token
@@ -325,7 +340,7 @@ Private Function pvAuthorize(oResult As Object) As Boolean
         m_sLastError = "Authorization failure" & IIf(LenB(sError) <> 0, ": ", vbNullString) & sError
         If Not AsyncOperations Then
             Set oResult = pvInitDictionary()
-            oResult!Success = False
+            oResult!success = False
             oResult!message = m_sLastError
             oResult!response = sResponse
         End If
@@ -367,8 +382,8 @@ Private Function pvRestInvoke(sUrl As String, sPostData As String, oResult As Ob
         End If
         .SetRequestHeader "X-CloudPrint-Proxy", STR_SOURCE
         .SetRequestHeader "Authorization", m_sAuthorization
-        '--- bug: Using CVar because MSXML2.XMLHTTP does not like VT_BYREF params
-        .Send CVar(sPostData)
+        '--- use pvToByteArray if sPostData contains '\0' chars from binary files
+        .Send pvToByteArray(sPostData)
         #If ASYNC_SUPPORT Then
             If bAsync Then
                 pvInitCallback oRequest, RetVal:=oResult
@@ -378,7 +393,7 @@ Private Function pvRestInvoke(sUrl As String, sPostData As String, oResult As Ob
         pvRestInvoke = pvJsonParse(.ResponseText, 1, oResult, m_sLastError)
         If Not pvRestInvoke Then
             Set oResult = pvInitDictionary()
-            oResult!Success = False
+            oResult!success = False
             oResult!message = "Invalid response"
             oResult!response = .ResponseText
             oResult!parseError = m_sLastError
@@ -389,7 +404,7 @@ QH:
 EH:
     m_sLastError = Err.Description
     Set oResult = pvInitDictionary()
-    oResult!Success = False
+    oResult!success = False
     oResult!message = m_sLastError
 End Function
 
@@ -625,7 +640,7 @@ End Function
 
 Private Function pvInitDictionary() As Object
     Set pvInitDictionary = CreateObject("Scripting.Dictionary")
-    pvInitDictionary.CompareMode = 1 ' TextCompare()
+    pvInitDictionary.CompareMode = 1 ' TextCompare
 End Function
 
 Private Function pvToUtf8(sText As String) As String
@@ -642,6 +657,10 @@ Private Function pvToBase64(baData() As Byte) As String
         .NodeTypedValue = baData
         pvToBase64 = .Text
     End With
+End Function
+
+Private Function pvToByteArray(sText As String) As Byte()
+    pvToByteArray = StrConv(sText, vbFromUnicode)
 End Function
 
 Private Function pvMatchContentType(sFile As String) As String
@@ -689,7 +708,9 @@ Private Function pvReadTextFile(sFile As String) As String
             End If
         End If
         If Left$(sPrefix, Len(BOM_UTF)) <> BOM_UTF Then
+            On Error Resume Next
             pvReadTextFile = .OpenTextFile(sFile, ForReading, False, Left$(sPrefix, Len(BOM_UNICODE)) = BOM_UNICODE Or IsTextUnicode(ByVal sPrefix, Len(sPrefix), &HFFFF& - 2) <> 0).ReadAll()
+            On Error GoTo 0
         Else
             With CreateObject("ADODB.Stream")
                 .Open
