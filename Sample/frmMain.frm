@@ -250,8 +250,8 @@ Private Declare Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As I
 ' Constants and member variables
 '=========================================================================
 
-Private Const STR_CLIENT_ID         As String = "54721768036.apps.googleusercontent.com"
-Private Const STR_CLIENT_SECRET     As String = "JdTHrdyZLscQBhO1s8OzhFAJ"
+Private Const STR_CLIENT_ID         As String = "270393284181.apps.googleusercontent.com"
+Private Const STR_CLIENT_SECRET     As String = "BjX4X3EQDN-MRpc0F4sETz83"
 Private Const REG_GCP_SECTION       As String = "GoogleCloudPrint"
 Private Const URL_HOST              As String = "https://www.google.com"
 
