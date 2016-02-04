@@ -190,6 +190,7 @@ Public Function GetPrinterInfo(sPrinterId As String) As Object
         Exit Function
     End If
     pvRestAddParam sPostData, "printerid", sPrinterId
+    pvRestAddParam sPostData, "use_cdd", "false"
     pvRestInvoke URL_PRINTER, sPostData, GetPrinterInfo
 End Function
 
