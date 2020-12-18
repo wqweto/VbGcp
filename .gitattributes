@@ -1,22 +1,18 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Default to binary (no diff)
 
-# Custom for Visual Studio
-*.cs     diff=csharp
-*.sln    merge=union
-*.csproj merge=union
-*.vbproj merge=union
-*.fsproj merge=union
-*.dbproj merge=union
+* binary diff
 
-# Standard to msysgit
-*.doc	 diff=astextplain
-*.DOC	 diff=astextplain
-*.docx diff=astextplain
-*.DOCX diff=astextplain
-*.dot  diff=astextplain
-*.DOT  diff=astextplain
-*.pdf  diff=astextplain
-*.PDF	 diff=astextplain
-*.rtf	 diff=astextplain
-*.RTF	 diff=astextplain
+# VB6 source files (show diff + keep CRLF in zip download)
+
+.bas        text=auto eol=crlf
+.cls        text=auto eol=crlf
+.ctl        text=auto eol=crlf
+.dob        text=auto eol=crlf
+.dsr        text=auto eol=crlf
+.frm        text=auto eol=crlf
+.pag        text=auto eol=crlf
+.vbg        text=auto eol=crlf
+.vbl        text=auto eol=crlf
+.vbp        text=auto eol=crlf
+.vbr        text=auto eol=crlf
+.vbw        text=auto eol=crlf
